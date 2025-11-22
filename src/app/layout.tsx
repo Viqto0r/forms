@@ -25,13 +25,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable}`}
+        cz-shortcut-listen="true"
+      >
         <nav className={styles.navigation}>
           <Link href="/" className={styles.navLink}>
             Main
           </Link>
           <Link href="/react-final-form" className={styles.navLink}>
             React Final Form
+          </Link>
+          <Link href="/react-hook-form" className={styles.navLink}>
+            React Hook Form
           </Link>
         </nav>
         {children}
