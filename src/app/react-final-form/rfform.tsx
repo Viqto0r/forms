@@ -3,6 +3,13 @@
 import { FC } from 'react'
 import { Field, Form } from 'react-final-form'
 import styles from './rfform.module.css'
+import { FieldArray } from 'react-final-form-arrays'
+import arrayMutators from 'final-form-arrays'
+
+interface IHobby {
+  name?: string
+  level?: string
+}
 
 interface FormValues {
   firstName: string
@@ -18,10 +25,11 @@ interface FormValues {
   bio: string
   color: string
   date: string
+  hobbies: IHobby[]
 }
 
 const validate = (values: FormValues) => {
-  const errors: Partial<Record<keyof FormValues, string>> = {}
+  const errors: Partial<Record<keyof FormValues, string | IHobby[]>> = {}
 
   if (!values.firstName) {
     errors.firstName = 'Обязательное поле'
@@ -71,6 +79,19 @@ const validate = (values: FormValues) => {
     errors.bio = 'Расскажите о себе подробнее (минимум 10 символов)'
   }
 
+  if (!values.hobbies || values.hobbies.length === 0) {
+    errors.hobbies = 'Добавьте хотя бы одно хобби'
+  } else {
+    values.hobbies.forEach((hobby, index) => {
+      if (!hobby.name) {
+        errors.hobbies = errors.hobbies || []
+        if (Array.isArray(errors.hobbies)) {
+          errors.hobbies[index] = { name: 'Название хобби обязательно' }
+        }
+      }
+    })
+  }
+
   return errors
 }
 
@@ -84,7 +105,10 @@ const initialValues = {
   country: 'ru',
   newsletter: true,
   interests: [],
+  hobbies: [{ name: '', level: 'beginner' }],
 }
+
+const mutators = { ...arrayMutators }
 
 export const RFForm: FC = () => {
   return (
@@ -92,6 +116,7 @@ export const RFForm: FC = () => {
       onSubmit={onSubmit}
       validate={validate}
       initialValues={initialValues}
+      mutators={mutators}
       render={({ handleSubmit, submitting, pristine, values, form }) => (
         <form onSubmit={handleSubmit} className={styles.form}>
           <h2 className={styles.title}>React-final-form</h2>
@@ -406,6 +431,94 @@ export const RFForm: FC = () => {
                 </div>
               )}
             </Field>
+          </div>
+
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Хобби *</h3>
+
+            <FieldArray name="hobbies">
+              {({ fields }) => (
+                <div className={styles.arrayContainer}>
+                  {fields.map((name, index) => (
+                    <div key={name} className={styles.arrayItem}>
+                      <div className={styles.arrayRow}>
+                        <Field name={`${name}.name`}>
+                          {({ input, meta }) => (
+                            <div className={styles.group}>
+                              <label className={styles.label}>
+                                Название хобби
+                              </label>
+                              <input
+                                {...input}
+                                type="text"
+                                placeholder="Например: Программирование"
+                                className={`${styles.input} ${
+                                  meta.error && meta.touched
+                                    ? styles.inputError
+                                    : ''
+                                }`}
+                              />
+                              {meta.error && meta.touched && (
+                                <span className={styles.error}>
+                                  {meta.error}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </Field>
+
+                        <Field name={`${name}.level`}>
+                          {({ input }) => (
+                            <div className={styles.group}>
+                              <label className={styles.label}>Уровень</label>
+                              <select {...input} className={styles.select}>
+                                <option value="beginner">Начинающий</option>
+                                <option value="intermediate">Средний</option>
+                                <option value="advanced">Продвинутый</option>
+                                <option value="expert">Эксперт</option>
+                              </select>
+                            </div>
+                          )}
+                        </Field>
+
+                        <button
+                          type="button"
+                          onClick={() => fields.remove(index)}
+                          className={styles.removeButton}
+                          disabled={fields.length === 1}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className={styles.arrayActions}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        fields.push({ name: '', level: 'beginner' })
+                      }
+                      className={styles.addButton}
+                    >
+                      + Добавить хобби
+                    </button>
+                  </div>
+
+                  {/* Общая ошибка для массива */}
+                  <Field
+                    name="hobbies"
+                    subscription={{ error: true, touched: true }}
+                  >
+                    {({ meta: { error, touched } }) =>
+                      error && touched && typeof error === 'string' ? (
+                        <span className={styles.error}>{error}</span>
+                      ) : null
+                    }
+                  </Field>
+                </div>
+              )}
+            </FieldArray>
           </div>
 
           <div className={styles.section}>

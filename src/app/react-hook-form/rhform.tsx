@@ -1,7 +1,7 @@
 'use client'
 
 import { FC } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import styles from './rhform.module.css'
 
 interface FormValues {
@@ -18,6 +18,7 @@ interface FormValues {
   bio: string
   color: string
   date: string
+  hobbies: { name: string; level: string }[]
 }
 
 const defaultValues: FormValues = {
@@ -34,6 +35,7 @@ const defaultValues: FormValues = {
   bio: '',
   color: '#000000',
   date: '',
+  hobbies: [{ name: '', level: 'beginner' }],
 }
 
 const onSubmit = async (data: FormValues) => {
@@ -52,6 +54,22 @@ export const RHForm: FC = () => {
   } = useForm<FormValues>({
     defaultValues,
     mode: 'onChange',
+  })
+
+  const {
+    fields: hobbyFields,
+    append: appendHobby,
+    remove: removeHobby,
+  } = useFieldArray({
+    control,
+    name: 'hobbies',
+    rules: {
+      required: 'Добавьте хотя бы одно хобби',
+      minLength: {
+        value: 1,
+        message: 'Добавьте хотя бы одно хобби',
+      },
+    },
   })
 
   const formValues = watch()
@@ -340,6 +358,79 @@ export const RHForm: FC = () => {
           {errors.bio && (
             <span className={styles.error}>{errors.bio.message}</span>
           )}
+        </div>
+      </div>
+
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Хобби *</h3>
+
+        <div className={styles.arrayContainer}>
+          {hobbyFields.map((field, index) => (
+            <div key={field.id} className={styles.arrayItem}>
+              <div className={styles.arrayRow}>
+                <div className={styles.group}>
+                  <label className={styles.label}>Название хобби</label>
+                  <input
+                    {...register(`hobbies.${index}.name` as const, {
+                      required: 'Название хобби обязательно',
+                    })}
+                    type="text"
+                    placeholder="Например: Программирование"
+                    className={`${styles.input} ${
+                      errors.hobbies?.[index]?.name ? styles.inputError : ''
+                    }`}
+                  />
+                  {errors.hobbies?.[index]?.name && (
+                    <span className={styles.error}>
+                      {errors.hobbies[index].name.message}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles.group}>
+                  <label className={styles.label}>Уровень</label>
+                  <Controller
+                    name={`hobbies.${index}.level` as const}
+                    control={control}
+                    render={({ field }) => (
+                      <select {...field} className={styles.select}>
+                        <option value="beginner">Начинающий</option>
+                        <option value="intermediate">Средний</option>
+                        <option value="advanced">Продвинутый</option>
+                        <option value="expert">Эксперт</option>
+                      </select>
+                    )}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => removeHobby(index)}
+                  className={styles.removeButton}
+                  disabled={hobbyFields.length === 1}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <div className={styles.arrayActions}>
+            <button
+              type="button"
+              onClick={() => appendHobby({ name: '', level: 'beginner' })}
+              className={styles.addButton}
+            >
+              + Добавить хобби
+            </button>
+          </div>
+
+          {/* Общая ошибка для массива */}
+          {errors.hobbies &&
+            typeof errors.hobbies === 'object' &&
+            'message' in errors.hobbies && (
+              <span className={styles.error}>{errors.hobbies.message}</span>
+            )}
         </div>
       </div>
 
