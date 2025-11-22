@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import Link from 'next/link'
+import styles from './layout.module.css'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -24,6 +26,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <nav className={styles.navigation}>
+          <Link href="/" className={styles.navLink}>
+            Main
+          </Link>
+          <Link href="/react-final-form" className={styles.navLink}>
+            React Final Form
+          </Link>
+        </nav>
         {children}
       </body>
     </html>
